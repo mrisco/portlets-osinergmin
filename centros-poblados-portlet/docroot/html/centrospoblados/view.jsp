@@ -54,8 +54,6 @@
   }
   
   function <portlet:namespace/>consultarDatos() {
-	  alert("MR");
-	  var dato;
 	  jQuery.ajax({
           url: '<%=urlResource%>',
           type: 'post',
@@ -63,7 +61,7 @@
           data: { <portlet:namespace/>metodo: 'consultarGEO',  
                 },
           success: function(val) {
-        	  dato = val.salida;
+        	  alert("XX " + val);
         	  if (val.salida == 9) {
         		  jQuery("<div>Resultado Esperado!!!!</div>").insertAfter("#<portlet:namespace/>followMe");
         	  } else {
@@ -72,7 +70,6 @@
           }
       });
 	  jQuery("<div>Que se puede hacer???</div>").insertAfter("#<portlet:namespace/>followMe");
-	  alert("MR2 "+ dato);
   }
 </script>
 

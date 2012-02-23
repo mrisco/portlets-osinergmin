@@ -9,8 +9,8 @@ import javax.portlet.RenderResponse;
 import javax.portlet.ResourceRequest;
 import javax.portlet.ResourceResponse;
 
-import net.sf.json.JSONObject;
-
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.util.bridges.mvc.MVCPortlet;
@@ -36,7 +36,7 @@ public class CentrosPoblados extends MVCPortlet {
     _log.info("Metodo: " + metodo);
 
     resourceResponse.setContentType("application/json");
-    JSONObject object = new JSONObject();
+    JSONObject object = JSONFactoryUtil.createJSONObject();
     // String respuesta = "9";
     // object.put("salida", respuesta);
     object.put("salida", 9);
@@ -44,5 +44,6 @@ public class CentrosPoblados extends MVCPortlet {
     pw.write(object.toString());
     pw.flush();
     pw.close();
+
   }
 }
