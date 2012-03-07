@@ -22,21 +22,33 @@
 </portlet:resourceURL>
 
 <script type="text/javascript" src="/osinergmin-theme/js/portal/include.js"></script>
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
 
 <script type="text/javascript">
+  /* Variables Globales - Google Maps */
+  google.load('visualization', '1',{'packages':['corechart', 'table', 'geomap']});
+  var map, layer_localidad, layer_sed;
+  var key = 'AIzaSyBgDcbt6euvDzAMKy0uvaJ0qCuSSAP4XK4';
+  var ft_localidad = '11l7q3ruvlJ3hI24hjgSSUgGhVLw1uNyC8UIDllY';
+  var ft_localidad_id = 3110406;
+  var ft_sed_id = 3109998;
+  var buscar = false;
+  
   jQuery(document).ready(function(){
       <portlet:namespace/>loadScript();
       <portlet:namespace/>initCombos();
       jQuery("#<portlet:namespace/>semestre").change(function() {<portlet:namespace/>initComboSemestre();});
       jQuery("#<portlet:namespace/>empresa").change(function() {<portlet:namespace/>initComboEmpresa();});
+      jQuery("#<portlet:namespace/>localidad").change(function() {buscar = false;});
       jQuery("#<portlet:namespace/>buscar").click(function() {<portlet:namespace/>buscarDatos();});
+      jQuery("#<portlet:namespace/>chk_sed").click(function() {<portlet:namespace/>habilitarLayers();});
       jQuery("<div>Hi There!</div>").insertAfter("#<portlet:namespace/>followMe");
   });
   
   function <portlet:namespace/>loadScript() {
       var script = document.createElement("script");
       script.type = "text/javascript";
-      script.src = "http://maps.googleapis.com/maps/api/js?key=AIzaSyBgDcbt6euvDzAMKy0uvaJ0qCuSSAP4XK4&sensor=false&callback=<portlet:namespace/>initialize";
+      script.src = "http://maps.googleapis.com/maps/api/js?key=" + key + "&sensor=false&callback=<portlet:namespace/>initialize";
       document.body.appendChild(script);  
   }
   
@@ -47,30 +59,36 @@
           center: myLatlng,
           mapTypeId: google.maps.MapTypeId.ROADMAP
       }
-      var map = new google.maps.Map(document.getElementById("<portlet:namespace/>map"), myOptions);
+      map = new google.maps.Map(document.getElementById("<portlet:namespace/>map"), myOptions);
         
-      var marker = new google.maps.Marker({
+      /*var marker = new google.maps.Marker({
           position: myLatlng, 
           map: map,
           title:"MiMarcador"
-      });
+      });*/
+      
+      layer_sed = new google.maps.FusionTablesLayer();
+      layer_localidad = new google.maps.FusionTablesLayer();
   }
   
   function <portlet:namespace/>initCombos() {
-      ft2json.query('SELECT semestre, nombre_semestre FROM 11l7q3ruvlJ3hI24hjgSSUgGhVLw1uNyC8UIDllY ORDER BY semestre', <portlet:namespace/>fillCombos);
+      var sql = 'SELECT semestre, nombre_semestre FROM ' + ft_localidad + ' ORDER BY semestre';
+      ft2json.query(sql, <portlet:namespace/>fillCombos);
   }
   
   function <portlet:namespace/>initComboSemestre() {
       var semestre = jQuery('#<portlet:namespace/>semestre option:selected').val();
-      var sql = 'SELECT empresa, nombre_empresa FROM 11l7q3ruvlJ3hI24hjgSSUgGhVLw1uNyC8UIDllY WHERE semestre = ' + semestre + ' ORDER BY empresa';
+      var sql = 'SELECT empresa, nombre_empresa FROM ' + ft_localidad + ' WHERE semestre = ' + semestre + ' ORDER BY empresa';
       ft2json.query(sql, <portlet:namespace/>fillComboSemestre);
+      buscar = false;
   }
 
   function <portlet:namespace/>initComboEmpresa() {
       var empresa = jQuery('#<portlet:namespace/>empresa option:selected').val();
       var semestre = jQuery('#<portlet:namespace/>semestre option:selected').val();
-      var sql = 'SELECT name, description FROM 11l7q3ruvlJ3hI24hjgSSUgGhVLw1uNyC8UIDllY WHERE empresa = \'' + empresa + '\' AND semestre = ' + semestre + ' ORDER BY name';
+      var sql = 'SELECT localidad, nombre_localidad FROM ' + ft_localidad + ' WHERE empresa = \'' + empresa + '\' AND semestre = ' + semestre + ' ORDER BY localidad';
       ft2json.query(sql, <portlet:namespace/>fillComboEmpresa);
+      buscar = false;
   }
   
   function <portlet:namespace/>fillCombos(result) {
@@ -92,13 +110,13 @@
   }
   
   function <portlet:namespace/>fillComboEmpresa(result) {
-      var html = '<option value="">- Seleccionar una Localidad -</option>' + <portlet:namespace/>parseResultQuery(result, 'name', 'description');
+      var html = '<option value="">- Seleccionar una Localidad -</option>' + <portlet:namespace/>parseResultQuery(result, 'localidad', 'nombre_localidad');
       
       jQuery("#<portlet:namespace/>localidad").html(html);
   }
   
   /*
-   * Función que devuelve el contenido HTML de un ComboBox, a partir del resultado de la query a una FusionTable, se asume que el resultado esta ordenado (SQL ORDER BY)
+   * Funcion que devuelve el contenido HTML de un ComboBox, a partir del resultado de la query a una FusionTable, se asume que el resultado esta ordenado (SQL ORDER BY)
    * Parametros:
    *   result: Resultado del query al FusionTable
    *   id:     Nombre de la columna del valor del elemento del ComboBox
@@ -128,8 +146,74 @@
       return html;
   }
   
-  function <portlet:namespace/>buscarDatos() {
+  function <portlet:namespace/>habilitarLayers() {
+      if (buscar) {
+         <portlet:namespace/>filterMap();
+      }
+  }
   
+  function <portlet:namespace/>buscarDatos() {
+      buscar = true;
+      <portlet:namespace/>filterMap();
+  }
+  
+  function <portlet:namespace/>filterMap() {
+      var chk_sed = jQuery("#<portlet:namespace/>chk_sed").is(':checked');
+      var chk_set = jQuery("#<portlet:namespace/>chk_set").is(':checked');
+      var semestre = jQuery("#<portlet:namespace/>semestre option:selected").val();
+      var empresa = jQuery("#<portlet:namespace/>empresa option:selected").val();
+      var localidad = jQuery("#<portlet:namespace/>localidad option:selected").val();
+      
+      var where = '';
+      if (semestre != '') {
+         where = where + 'semestre = \'' + semestre + '\'';
+      }
+      if (empresa != '') {
+         where = where + ' and empresa = \'' + empresa + '\'';
+      }
+      if (localidad != '') {
+         where = where + ' and localidad = \'' + localidad + '\'';
+      }
+  
+      var option_localidad = {
+            styles: [{
+                polygonOptions: {
+                    fillColor: "#00ff00",
+                    strokeColor: "#fffff00", 
+                    strokeWeight: 2,
+                    strokeOpacity : 0.5
+                }
+            }],
+            map:map,
+            query: {
+                select: 'geometry',
+                from: ft_localidad_id,
+                where: where
+            }
+          }
+      
+      var option_sed = {
+         map: map,
+         query: {
+             select: 'geometry',
+             from: ft_sed_id,
+             where: where
+         }
+      }
+      
+      // Aplicamos el zoom de la busqueda
+      var query_zoom = "SELECT geometry FROM " + ft_localidad_id + " WHERE " + where;
+      <portlet:namespace/>zoom2query(query_zoom);
+      
+      layer_localidad.setOptions(option_localidad);
+      if (chk_sed) {
+         if ( !layer_sed.getMap() ) {
+            layer_sed.setMap(map);
+         }
+         layer_sed.setOptions(option_sed);
+      } else {
+         layer_sed.setMap(null);
+      }
   }
   
   function <portlet:namespace/>consultarDatos() {
@@ -150,6 +234,47 @@
       });
       jQuery("<div>Que se puede hacer???</div>").insertAfter("#<portlet:namespace/>followMe");
   }
+  
+  /*
+   * Funciones zoom2query y zoomTo, usadas para realizar el zoom al momento de la busqueda
+   */
+  function <portlet:namespace/>zoom2query(query) {
+      var queryText = encodeURIComponent(query);
+      var query = new google.visualization.Query('http://www.google.com/fusiontables/gvizdata?tq='  + queryText);
+      
+      //set the callback function
+      query.send(<portlet:namespace/>zoomTo);
+  }
+
+  function <portlet:namespace/>zoomTo(response) {
+      if (!response) {
+          alert('no response');
+          return;
+      }
+      if (response.isError()) {
+          alert('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
+          return;
+      } 
+
+      var numRows = response.getDataTable().getNumberOfRows();
+      var numCols = response.getDataTable().getNumberOfColumns();
+      var unionBounds = null;
+      var kml;
+   
+      for(i = 0; i < numRows; i++) {
+          kml =  response.getDataTable().getValue(i,0);
+          var geoXml = new geoXML3.parser({
+               map: map,
+               zoom: false
+          });
+          geoXml.parseKmlString("<Placemark>"+kml+"</Placemark>");
+          geoXml.docs[0].gpolygons[0].setMap(null);
+          if (!unionBounds) unionBounds = geoXml.docs[0].gpolygons[0].bounds;
+          else unionBounds.union(geoXml.docs[0].gpolygons[0].bounds);
+      }      
+      map.fitBounds(unionBounds);
+  }
+  
 </script>
 
 <style type="text/css">
@@ -184,11 +309,28 @@ h2{ background:#004993;}
 /*a h2, aside a h2{color:#FFF; text-decoration:none;width:100%;}*/
 </style>
 
+<!--<div id="lb_errorbusqueda">
+  <div class="error_up"></div>
+    <div class="error_center" style="width: 330px">
+      <div class="error_mark">
+        <div class="error_mark_img">
+          <img src="/portalInmobiliario-theme/images/ibk/lb_error-mark.jpg" alt="" />
+        </div>
+        <div class="error_mark_cerrar">
+          <p><a  onclick="lighBox.close('errorformulario');ponerfoco();"><img src="/portalInmobiliario-theme/images/ibk/lb_error_cerrar.jpg" width="16" height="15" alt=""/></a></p>
+        </div>
+    </div>
+    <div class="error_cont"  id="<portlet:namespace />cuerpomsjerror">
+    </div>
+  </div>
+  <div class="error_bottom"></div>
+</div>-->
+ 
 <div id="welcome-image">
   <table style="width:940px;margin:0 auto;border:0">
     <tbody>
       <tr id="cm_mapTR">
-        <td> <div id="<portlet:namespace/>map" style="overflow: hidden; width:940px; height:502px"><br><br>Cargando el Mapa - favor de ser paciente <br><br><br><img src=http://www.benetton.com/wp-content/themes/benetton/images/ajax-loading.gif> </div> </td>
+        <td> <div id="<portlet:namespace/>map" style="overflow: hidden; width:940px; height:502px"><br><br>Cargando el Mapa - favor de ser paciente <br><br><br><img src=/osinergmin-theme/images/maps/ajax-loading.gif> </div> </td>
      </tr>
     </tbody>
   </table>
@@ -215,9 +357,9 @@ h2{ background:#004993;}
               </select>
             </td>
             <td rowspan="2">
-              <input type="checkbox" checked="" value="store_adult" id="chk_1" name="chk-01"> SET
+              <input type="checkbox" checked="" value="show_set" id="<portlet:namespace/>chk_set"> SET
               <br />
-              <input type="checkbox" checked="" value="store_kid"   id="chk_2" name="chk-01"> SED
+              <input type="checkbox" checked="" value="show_sed" id="<portlet:namespace/>chk_sed"> SED
               <br />
             </td>
             <td>&nbsp;</td>
