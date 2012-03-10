@@ -42,6 +42,8 @@
       jQuery("#<portlet:namespace/>localidad").change(function() {buscar = false;});
       jQuery("#<portlet:namespace/>buscar").click(function() {<portlet:namespace/>buscarDatos();});
       jQuery("#<portlet:namespace/>chk_sed").click(function() {<portlet:namespace/>habilitarLayers();});
+      jQuery("#<portlet:namespace/>export_xls").click(function() {<portlet:namespace/>exportarExcel();});
+      jQuery("#<portlet:namespace/>result_table").hide();
       jQuery("<div>Hi There!</div>").insertAfter("#<portlet:namespace/>followMe");
   });
   
@@ -155,6 +157,7 @@
   function <portlet:namespace/>buscarDatos() {
       buscar = true;
       <portlet:namespace/>filterMap();
+      <portlet:namespace/>updateResults();
   }
   
   function <portlet:namespace/>filterMap() {
@@ -213,6 +216,23 @@
          layer_sed.setOptions(option_sed);
       } else {
          layer_sed.setMap(null);
+      }
+  }
+  
+  function <portlet:namespace/>updateResults() {
+      var localidad = jQuery("#<portlet:namespace/>localidad option:selected").val();
+      var html = '';
+      var text = '';
+      
+      jQuery("#<portlet:namespace/>result_table").show();
+      if (localidad == '') {
+          html = jQuery("#<portlet:namespace/>localidad").html();
+          jQuery("#<portlet:namespace/>list_localidad").html(html);
+      } else {
+          html = jQuery('#<portlet:namespace/>localidad option:selected').val();
+          text = jQuery('#<portlet:namespace/>localidad option:selected').text();
+          html = '<option value="' + html + '">' + text + '</option>';
+          jQuery("#<portlet:namespace/>list_localidad").html(html);
       }
   }
   
@@ -275,6 +295,9 @@
       map.fitBounds(unionBounds);
   }
   
+  function <portlet:namespace/>exportarExcel() {
+      alert("MR");
+  }
 </script>
 
 <style type="text/css">
@@ -300,13 +323,17 @@ body {font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight:n
 
 /* Theme */
 h2{ background:#009933; height:25px; line-height:25px; width:100%;color:#FFF;}
-
 h2{ background:#004993;}
 
 .button, .button:visited, .medium.button, .medium.button:visited { font-size: 12px; line-height: 12px; padding:5px 20px;}
 .grey.button, .grey.button:visited  { background-color: #c2c2c2;color: #000; }
 .grey.button:hover { background-color: #949494; color: #000;}
 /*a h2, aside a h2{color:#FFF; text-decoration:none;width:100%;}*/
+span#export_link p{ background:url(/osinergmin-theme/images/maps/logo-xls.png) 1% 50% no-repeat; height:30px; line-height:32px;padding-left:28px;}
+span#list_msg p{ padding-top:8px;padding-left:5px;margin-bottom:0px}
+
+a { color: #004993;text-decoration: none;}
+a:hover { color: #ac0518;}
 </style>
 
 <!--<div id="lb_errorbusqueda">
@@ -384,6 +411,36 @@ h2{ background:#004993;}
             </td>
           </tr>
         </table>
+      </td>
+      <td> 
+        <div id="<portlet:namespace/>result_table">
+          <table width="100%" border="0">
+            <tr>
+              <td><strong>&nbsp;&nbsp;Localidad</strong></td>
+              <td>
+                <select name="list_localidad" id="<portlet:namespace/>list_localidad" style="width: 190px;margin-left:20px;">
+                  <option value=""></option>
+                </select>
+              </td>
+            </tr> 
+            <tr>
+              <td colspan="2">
+                <span id="list_msg">
+                  <p>12 SEDS ENCONTRADOS</p>
+                </span> 
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2">
+                <span id="export_link">
+                  <a id="<portlet:namespace/>export_xls" href="#">
+                    <p> Descargar Excel </p>
+                  </a>
+                </span>
+              </td>
+            </tr> 
+          </table>
+        </div>
       </td>
     </tr>
   </table>
