@@ -21,8 +21,10 @@
   <portlet:param name="jspPage" value="/html/centrospoblados/view.jsp" />
 </portlet:resourceURL>
 
-<script type="text/javascript" src="/osinergmin-theme/js/portal/include.js"></script>
 <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+<script type="text/javascript" src="/osinergmin-theme/js/portal/include.js"></script>
+
+<link href='/osinergmin-theme/css/portlet-osinergmin.css' type=text/css rel=stylesheet>
 
 <script type="text/javascript">
   /* Variables Globales - Google Maps */
@@ -30,9 +32,12 @@
   var map, layer_localidad, layer_sed;
   var key = 'AIzaSyBgDcbt6euvDzAMKy0uvaJ0qCuSSAP4XK4';
   var ft_localidad = '11l7q3ruvlJ3hI24hjgSSUgGhVLw1uNyC8UIDllY';
+  var ft_sed = '1GXSR3vGYMEazmQlL-nqN4pKyNPIgTfFpgd3GQrc';
   var ft_localidad_id = 3110406;
   var ft_sed_id = 3109998;
   var buscar = false;
+  var vector_excel = new Array();
+  var polygon, ncol_excel = 0, nrow_excel = 0;
   
   jQuery(document).ready(function(){
       <portlet:namespace/>loadScript();
@@ -43,7 +48,7 @@
       jQuery("#<portlet:namespace/>buscar").click(function() {<portlet:namespace/>buscarDatos();});
       jQuery("#<portlet:namespace/>chk_sed").click(function() {<portlet:namespace/>habilitarLayers();});
       jQuery("#<portlet:namespace/>export_xls").click(function() {<portlet:namespace/>exportarExcel();});
-      jQuery("#<portlet:namespace/>result_table").hide();
+      jQuery("#<portlet:namespace/>list_localidad").change(function() {<portlet:namespace/>updateResultDetail();});
       jQuery("<div>Hi There!</div>").insertAfter("#<portlet:namespace/>followMe");
   });
   
@@ -51,7 +56,7 @@
       var script = document.createElement("script");
       script.type = "text/javascript";
       script.src = "http://maps.googleapis.com/maps/api/js?key=" + key + "&sensor=false&callback=<portlet:namespace/>initialize";
-      document.body.appendChild(script);  
+      document.body.appendChild(script);
   }
   
   function <portlet:namespace/>initialize() {
@@ -71,6 +76,11 @@
       
       layer_sed = new google.maps.FusionTablesLayer();
       layer_localidad = new google.maps.FusionTablesLayer();
+      
+      var script = document.createElement("script");
+      script.type = "text/javascript";
+      script.src = "/osinergmin-theme/js/portal/maps.google.polygon.containsLatLng.js";
+      document.body.appendChild(script);
   }
   
   function <portlet:namespace/>initCombos() {
@@ -150,22 +160,33 @@
   
   function <portlet:namespace/>habilitarLayers() {
       if (buscar) {
-         <portlet:namespace/>filterMap();
+         <portlet:namespace/>filterMap("#<portlet:namespace/>localidad");
       }
   }
   
   function <portlet:namespace/>buscarDatos() {
-      buscar = true;
-      <portlet:namespace/>filterMap();
-      <portlet:namespace/>updateResults();
+      var semestre = jQuery("#<portlet:namespace/>semestre option:selected").val();
+      var empresa = jQuery("#<portlet:namespace/>empresa option:selected").val();
+      
+      if ((semestre == '') || (empresa == '')){
+         var addhtml='<p class="error_warning">No se ha ingresado correctamente los datos</p>';
+         addhtml+='<p class="error_msj">Debe seleccionar un valor para Semestre y un valor para Empresa</p>';
+         jQuery("#<portlet:namespace />cuerpomsjerror").html(addhtml);
+         lighBox.open('errorbusqueda');
+      } else {
+         buscar = true;
+         <portlet:namespace/>filterMap("#<portlet:namespace/>localidad");
+         <portlet:namespace/>updateResultHeader();
+      }
   }
   
-  function <portlet:namespace/>filterMap() {
+  function <portlet:namespace/>filterMap(localidad_element) {
       var chk_sed = jQuery("#<portlet:namespace/>chk_sed").is(':checked');
       var chk_set = jQuery("#<portlet:namespace/>chk_set").is(':checked');
       var semestre = jQuery("#<portlet:namespace/>semestre option:selected").val();
       var empresa = jQuery("#<portlet:namespace/>empresa option:selected").val();
-      var localidad = jQuery("#<portlet:namespace/>localidad option:selected").val();
+      //var localidad = jQuery("#<portlet:namespace/>localidad option:selected").val();
+      var localidad = jQuery(localidad_element + " option:selected").val();
       
       var where = '';
       if (semestre != '') {
@@ -219,12 +240,13 @@
       }
   }
   
-  function <portlet:namespace/>updateResults() {
+  function <portlet:namespace/>updateResultHeader() {
       var localidad = jQuery("#<portlet:namespace/>localidad option:selected").val();
       var html = '';
       var text = '';
       
-      jQuery("#<portlet:namespace/>result_table").show();
+      jQuery("#result-header").css({visibility: "visible"});
+      jQuery("#result-detail").css({visibility: "hidden"});
       if (localidad == '') {
           html = jQuery("#<portlet:namespace/>localidad").html();
           jQuery("#<portlet:namespace/>list_localidad").html(html);
@@ -233,6 +255,26 @@
           text = jQuery('#<portlet:namespace/>localidad option:selected').text();
           html = '<option value="' + html + '">' + text + '</option>';
           jQuery("#<portlet:namespace/>list_localidad").html(html);
+          
+          html = '<p>&nbsp;</p>';
+          jQuery("#list_msg").html(html);
+          <portlet:namespace/>generarDatos();
+          jQuery("#result-detail").css({visibility: "visible"});
+      }
+  }
+  
+  function <portlet:namespace/>updateResultDetail() {
+      var localidad = jQuery("#<portlet:namespace/>list_localidad option:selected").val();
+      var html = '';
+      
+      if (localidad == '') {
+         jQuery("#result-detail").css({visibility: "hidden"});
+      } else {
+         <portlet:namespace/>filterMap("#<portlet:namespace/>list_localidad");
+         html = '<p>&nbsp;</p>';
+         jQuery("#list_msg").html(html);
+         <portlet:namespace/>generarDatos();
+         jQuery("#result-detail").css({visibility: "visible"});
       }
   }
   
@@ -241,18 +283,16 @@
           url: '<%=urlResource%>',
           type: 'post',
           dataType: 'json',
-          data: { <portlet:namespace/>metodo: 'consultarGEO',  
+          data: { <portlet:namespace/>metodo: 'json',  
                 },
           success: function(val) {
-              alert("XX " + val);
               if (val.salida == 9) {
-                  jQuery("<div>Resultado Esperado!!!!</div>").insertAfter("#<portlet:namespace/>followMe");
+                  alert("Resultado Esperado!!!!");
               } else {
-                  jQuery("<div>Resultado Inesperado????</div>").insertAfter("#<portlet:namespace/>followMe");
+                  alert("Resultado Inesperado????");
               }     
           }
       });
-      jQuery("<div>Que se puede hacer???</div>").insertAfter("#<portlet:namespace/>followMe");
   }
   
   /*
@@ -281,7 +321,7 @@
       var unionBounds = null;
       var kml;
    
-      for(i = 0; i < numRows; i++) {
+      for(var i=0; i<numRows; i++) {
           kml =  response.getDataTable().getValue(i,0);
           var geoXml = new geoXML3.parser({
                map: map,
@@ -296,64 +336,125 @@
   }
   
   function <portlet:namespace/>exportarExcel() {
-      alert("MR");
+        /* Llamada para al portlet para la generacion del archivo excel */
+      var url='<portlet:resourceURL></portlet:resourceURL>';
+      //jQuery.post(url, {arrayDatos:vector, ncol:ncol, nrow:nrow, metodo:"excel"});
+      var frm = document.<portlet:namespace/>centrospoblados;
+      frm.action=url+'&metodo=excel&arrayDatos='+vector_excel.join('|')+'&ncol='+ncol_excel+'&nrow='+nrow_excel;
+      frm.submit();
   }
+  
+  function <portlet:namespace/>generarDatos() {
+      var semestre = jQuery("#<portlet:namespace/>semestre option:selected").val();
+      var empresa = jQuery("#<portlet:namespace/>empresa option:selected").val();
+      var localidad = jQuery("#<portlet:namespace/>list_localidad option:selected").val();
+      
+      var where = ' WHERE semestre = \'' + semestre + '\' and empresa = \'' + empresa + '\' and localidad = \'' + localidad + '\'';
+      var sql_localidad = 'SELECT geometry, nombre_localidad, localidad FROM ' + ft_localidad + where;
+      ft2json.query(sql_localidad, <portlet:namespace/>generarDatosArray);
+  }
+  
+  function <portlet:namespace/>generarDatosArray(result) {
+      var geometry = 'geometry', val_geometry = '', mvc_array = '', latlng = '', lat = '', lng = '';
+      var semestre = jQuery("#<portlet:namespace/>semestre option:selected").val();
+      var empresa = jQuery("#<portlet:namespace/>empresa option:selected").val();
+      var localidad = jQuery("#<portlet:namespace/>list_localidad option:selected").val();
+      
+      var where = ' WHERE semestre = \'' + semestre + '\' and empresa = \'' + empresa + '\' and localidad = \'' + localidad + '\'';
+      var sql_sed = 'SELECT geometry, nombre_sed, sed, semestre, empresa, localidad FROM ' + ft_sed + where +' ORDER BY sed';
+      
+      for(i in result) {
+          if(i == 'data') {
+              for(var j = 0; j < result[i].length; j++) {
+                  for(k in result[i][j]) {
+                      if (k == geometry) { val_geometry = result[i][j][k]; }
+                  }
+                  latlng = val_geometry.split(',');
+                  mvc_array = new google.maps.MVCArray();
+                  for (k=0; k<latlng.length-1; k=k+2) {
+                      if (k==0) { 
+                         lng = latlng[k].replace('<Polygon><outerBoundaryIs><LinearRing><coordinates>','');
+                      } else {
+                         lng = latlng[k].split(' ')[1];
+                      }
+                      lat = latlng[k+1];
+                      mvc_array.push(new google.maps.LatLng(lat,lng));
+                  }
+                  polygon = new google.maps.Polygon({path: mvc_array});
+              }
+          }
+      }
+      ft2json.query(sql_sed, <portlet:namespace/>spatialQuery);
+  }
+  
+  function <portlet:namespace/>spatialQuery(result) {
+      var sed = 'sed', nombre_sed = 'nombre_sed', semestre = 'semestre', empresa = 'empresa', localidad = 'localidad', geometry = 'geometry';
+      var val_sed = '', val_nombre_sed = '', val_semestre = '', val_empresa = '', val_localidad = '', val_geometry = '';
+      var ncol = 6, nrow = 0, index = 0, nrow_in = 0, nrow_out = 0;
+      var vector = new Array();
+      
+      for(i in result) {
+          if(i == 'data') {
+              for(var j = 0; j < result[i].length; j++) {
+                  for(k in result[i][j]) {
+                      if (k == sed) { val_sed = result[i][j][k]; }
+                      if (k == nombre_sed) { val_nombre_sed = result[i][j][k]; }
+                      if (k == semestre) { val_semestre = result[i][j][k]; }
+                      if (k == empresa) { val_empresa = result[i][j][k]; }
+                      if (k == localidad) { val_localidad = result[i][j][k]; }
+                      if (k == geometry) { val_geometry = result[i][j][k]; }
+                  }
+                  index = nrow*ncol;
+                  vector[index+0] = val_sed;
+                  vector[index+1] = val_nombre_sed;
+                  vector[index+2] = val_semestre;
+                  vector[index+3] = val_empresa;
+                  vector[index+4] = val_localidad;
+                  vector[index+5] = 'No';
+                  nrow++;
+                  
+                  /* Consulta Espacial */
+                  point = val_geometry.split(',',2);
+                  lng = point[0].replace('<Point><coordinates>','');
+                  lat = point[1];
+                  coordinate = new google.maps.LatLng(lat,lng);
+                  if (polygon.containsLatLng(coordinate)) { 
+                      vector[index+5] = 'Si'; 
+                      nrow_in++;
+                  }
+              }
+          }
+      }
+      vector_excel = vector;
+      nrow_excel = nrow; ncol_excel = ncol;
+      //alert(vector.join('|')); return;
+      
+      nrow_out = nrow - nrow_in;
+      var html = '<p>' + nrow + ' SEDS ENCONTRADOS, ' + nrow_in + ' DENTRO DE LA LOCALIDAD, ' + nrow_out + ' FUERA</p>';
+      jQuery("#list_msg").html(html);
+  }
+  
 </script>
 
-<style type="text/css">
-div#welcome-image {
-    width:100%;
-    height:500px;
-    margin:0;
-    /*background-color: #ebebeb;*/
-}
-div#welcome-image img{display:block; margin-left:auto; margin-right:auto;}
-div#wrapper{
-    width:960px;
-    /*margin:0 auto -170px;*/
-    min-height: 100%;
-    height: auto !important;
-    height: 100%;
-    padding:0;
-    line-height:18px;
-}
-h2, h3, h4 {font-family: 'BenettonRegular', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight:normal; text-transform:uppercase}
-h2 {font-size:15px; line-heigth:15px;}
-body {font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight:normal; font-size:12px; line-heigth:16px; color:#666}
-
-/* Theme */
-h2{ background:#009933; height:25px; line-height:25px; width:100%;color:#FFF;}
-h2{ background:#004993;}
-
-.button, .button:visited, .medium.button, .medium.button:visited { font-size: 12px; line-height: 12px; padding:5px 20px;}
-.grey.button, .grey.button:visited  { background-color: #c2c2c2;color: #000; }
-.grey.button:hover { background-color: #949494; color: #000;}
-/*a h2, aside a h2{color:#FFF; text-decoration:none;width:100%;}*/
-span#export_link p{ background:url(/osinergmin-theme/images/maps/logo-xls.png) 1% 50% no-repeat; height:30px; line-height:32px;padding-left:28px;}
-span#list_msg p{ padding-top:8px;padding-left:5px;margin-bottom:0px}
-
-a { color: #004993;text-decoration: none;}
-a:hover { color: #ac0518;}
-</style>
-
-<!--<div id="lb_errorbusqueda">
+<div id="lb_errorbusqueda" >
   <div class="error_up"></div>
     <div class="error_center" style="width: 330px">
       <div class="error_mark">
         <div class="error_mark_img">
-          <img src="/portalInmobiliario-theme/images/ibk/lb_error-mark.jpg" alt="" />
+          <img src="/osinergmin-theme/images/maps/lb_error-mark.jpg" alt="" />
         </div>
         <div class="error_mark_cerrar">
-          <p><a  onclick="lighBox.close('errorformulario');ponerfoco();"><img src="/portalInmobiliario-theme/images/ibk/lb_error_cerrar.jpg" width="16" height="15" alt=""/></a></p>
+          <p><a  onclick="lighBox.close('errorbusqueda');"><img src="/osinergmin-theme/images/maps/lb_error_cerrar.jpg" width="16" height="15" alt=""/></a></p>
         </div>
     </div>
     <div class="error_cont"  id="<portlet:namespace />cuerpomsjerror">
     </div>
   </div>
   <div class="error_bottom"></div>
-</div>-->
+</div>
  
-<div id="welcome-image">
+<form name="<portlet:namespace/>centrospoblados" id="<portlet:namespace/>centrospoblados"  method="post" style="background-color:white">
+ <div id="welcome-image">
   <table style="width:940px;margin:0 auto;border:0">
     <tbody>
       <tr id="cm_mapTR">
@@ -361,9 +462,9 @@ a:hover { color: #ac0518;}
      </tr>
     </tbody>
   </table>
-</div>
+ </div>
 
-<div id="wrapper">
+ <div id="wrapper">
   <table style="width:940px;margin:0 10px 0 10px;border:0">
     <tr>
       <th>
@@ -413,7 +514,7 @@ a:hover { color: #ac0518;}
         </table>
       </td>
       <td> 
-        <div id="<portlet:namespace/>result_table">
+        <div id="result-header" class="hidden">
           <table width="100%" border="0">
             <tr>
               <td><strong>&nbsp;&nbsp;Localidad</strong></td>
@@ -422,11 +523,15 @@ a:hover { color: #ac0518;}
                   <option value=""></option>
                 </select>
               </td>
-            </tr> 
+            </tr>
+          </table>
+        </div>
+        <div id="result-detail" class="hidden">
+          <table width="100%" border="0">
             <tr>
               <td colspan="2">
                 <span id="list_msg">
-                  <p>12 SEDS ENCONTRADOS</p>
+                  <p>&nbsp;</p>
                 </span> 
               </td>
             </tr>
@@ -444,9 +549,8 @@ a:hover { color: #ac0518;}
       </td>
     </tr>
   </table>
-</div>
-
-
+ </div>
+</form>
 <!--This is the <h1>CentrosPoblados XXX</h1> portlet in View mode.-->
 <!--<div id="<portlet:namespace/>followMe">Follow me!</div>
 
