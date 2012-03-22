@@ -1,0 +1,11 @@
+div#box_map {
+    width:100%;
+    height:500px;
+    margin:0;
+    /*background-color: #ebebeb;*/
+}
+div#box_map img{
+    display:block; 
+    margin-left:auto; 
+    margin-right:auto;
+    }

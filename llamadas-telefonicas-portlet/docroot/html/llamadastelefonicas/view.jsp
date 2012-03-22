@@ -17,5 +17,73 @@
 <%@ taglib uri="http://java.sun.com/portlet_2_0" prefix="portlet" %>
 
 <portlet:defineObjects />
+<portlet:resourceURL  var="urlResource"  >
+  <portlet:param name="jspPage" value="/html/llamadastelefonicas/view.jsp" />
+</portlet:resourceURL>
 
-This is the <b>LlamadasTelefonicas</b> portlet in View mode.
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+<script type="text/javascript" src="/osinergmin-theme/js/portal/include.js"></script>
+
+<link href='/osinergmin-theme/css/portlet-osinergmin.css' type=text/css rel=stylesheet>
+
+<script type="text/javascript">
+  /* Variables Globales - Google Maps */
+  google.load('visualization', '1',{'packages':['corechart', 'table', 'geomap']});
+  var key = 'AIzaSyBgDcbt6euvDzAMKy0uvaJ0qCuSSAP4XK4';
+  
+  jQuery(document).ready(function(){
+      <portlet:namespace/>loadScript();
+  });
+  
+  function <portlet:namespace/>loadScript() {
+      var script = document.createElement("script");
+      script.type = "text/javascript";
+      script.src = "http://maps.googleapis.com/maps/api/js?key=" + key + "&sensor=false&callback=<portlet:namespace/>initialize";
+      document.body.appendChild(script);
+  }
+  
+  function <portlet:namespace/>initialize() {
+      var myLatlng = new google.maps.LatLng('-12.491991', '-76.72588');
+      var myOptions = {
+          zoom: 6,
+          center: myLatlng,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+      }
+      map = new google.maps.Map(document.getElementById("<portlet:namespace/>map"), myOptions);
+        
+      /*var marker = new google.maps.Marker({
+          position: myLatlng, 
+          map: map,
+          title:"MiMarcador"
+      });*/
+  }
+</script>
+
+<div id="lb_errorbusqueda" >
+  <div class="error_up"></div>
+    <div class="error_center" style="width: 330px">
+      <div class="error_mark">
+        <div class="error_mark_img">
+          <img src="/osinergmin-theme/images/maps/lb_error-mark.jpg" alt="" />
+        </div>
+        <div class="error_mark_cerrar">
+          <p><a  onclick="lighBox.close('errorbusqueda');"><img src="/osinergmin-theme/images/maps/lb_error_cerrar.jpg" width="16" height="15" alt=""/></a></p>
+        </div>
+    </div>
+    <div class="error_cont"  id="<portlet:namespace />cuerpomsjerror">
+    </div>
+  </div>
+  <div class="error_bottom"></div>
+</div>
+
+<div id="box_map">
+  <table style="width:740px;margin:0 auto;border:0">
+    <tbody>
+      <tr id="cm_mapTR">
+        <td> <div id="<portlet:namespace/>map" style="overflow: hidden; width:740px; height:502px"><br><br>Cargando el Mapa - favor de ser paciente <br><br><br><img src=/osinergmin-theme/images/maps/ajax-loading.gif> </div> </td>
+     </tr>
+    </tbody>
+  </table>
+</div>
+<div id="box_result">
+</div>
