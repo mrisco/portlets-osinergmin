@@ -76,7 +76,9 @@
   <div class="error_bottom"></div>
 </div>
 
-<div id="box_map">
+ <div id="box_top">
+ </div>
+ <div id="box_map">
   <table style="width:740px;margin:0 auto;border:0">
     <tbody>
       <tr id="cm_mapTR">
@@ -84,6 +86,36 @@
      </tr>
     </tbody>
   </table>
-</div>
-<div id="box_result">
-</div>
+ </div>
+ <div id="box_result">
+   <div id="box_result_top">
+     <h2 style="width:330px;margin-top:2px;text-align:center">Cuadro de B&uacute;squeda</h2>
+   </div>
+   <div id="box_result_middle">
+     <table width="100%" border="0">
+       <tr>
+         <td><strong>&nbsp;&nbsp;Semestre</strong></td>
+         <td>
+           <select name="semestre" id="<portlet:namespace/>semestre" style="width:190px;margin-left:20px;">
+             <option value=""></option>
+           </select>
+         </td>
+       </tr>
+       <tr>
+         <td><strong>&nbsp;&nbsp;Empresa</strong></td>
+         <td>
+           <select name="empresa" id="<portlet:namespace/>empresa" style="width: 190px;margin-left:20px;">
+             <option value=""></option>
+           </select>                    
+         </td>
+       </tr>
+       <tr>
+         <td valign="bottom" style="align:baseline; margin-right:12px; float:right">
+           <input type="button" id="<portlet:namespace/>buscar" value="Buscar" name="buscar" class="medium button grey">
+         </td>
+       </tr>
+     </table>
+   </div>
+   <div id="box_result_bottom">
+   </div>
+ </div>
