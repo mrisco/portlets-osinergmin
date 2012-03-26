@@ -49,7 +49,6 @@
       jQuery("#<portlet:namespace/>chk_sed").click(function() {<portlet:namespace/>habilitarLayers();});
       jQuery("#<portlet:namespace/>export_xls").click(function() {<portlet:namespace/>exportarExcel();});
       jQuery("#<portlet:namespace/>list_localidad").change(function() {<portlet:namespace/>updateResultDetail();});
-      jQuery("<div>Hi There!</div>").insertAfter("#<portlet:namespace/>followMe");
   });
   
   function <portlet:namespace/>loadScript() {
@@ -551,9 +550,3 @@
   </table>
  </div>
 </form>
-<!--This is the <h1>CentrosPoblados XXX</h1> portlet in View mode.-->
-<!--<div id="<portlet:namespace/>followMe">Follow me!</div>
-
-<div class="main_form">
-  <input type="button" id="<portlet:namespace/>consultar" value="Consultar" /> 
-</div>-->
