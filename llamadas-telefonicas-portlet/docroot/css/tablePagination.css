@@ -1,0 +1,98 @@
+#tablePagination { 
+	background: url(../images/wbg.gif) repeat-x 0 -1px;
+	border: 1px solid #ccc;
+	border-top: 0px;
+	overflow: hidden;
+	white-space: nowrap;
+	position: relative;
+}
+
+#tablePagination_paginater { 
+    margin-left: auto; 
+    margin-right: auto;
+}
+
+#tablePagination_group {
+	float: left;
+	background: none;
+	height: 24px;
+	margin: 0px 5px;
+}
+
+#tablePagination_control {
+	font-size: 12px;
+}
+
+#tablePagination_firstPage {
+	background: url(../images/first.gif) no-repeat center;
+	float: left;
+	width: 22px;
+	height: 24px;
+	border: 0px;
+	cursor: pointer;
+	overflow: hidden;
+}
+
+#tablePagination_prevPage {
+	background: url(../images/prev.gif) no-repeat center;
+	float: left;
+	width: 22px;
+	height: 24px;
+	border: 0px;
+	cursor: pointer;
+	overflow: hidden;
+}
+
+#tablePagination_nextPage {
+	background: url(../images/next.gif) no-repeat center;
+	float: left;
+	width: 22px;
+	height: 24px;
+	border: 0px;
+	cursor: pointer;
+	overflow: hidden;
+}
+
+#tablePagination_lastPage {
+	background: url(../images/last.gif) no-repeat center;
+	float: left;
+	width: 22px;
+	height: 24px;
+	border: 0px;
+	cursor: pointer;
+	overflow: hidden;
+}
+
+#tablePagination_perPage { 
+    float: left; 
+    margin-top: 5px;
+}
+          
+#tablePagination_paginater { 
+    float: right; 
+    margin-top: 5px;
+}
+
+#tablePagination_separator {
+	float: left;
+	height: 22px;
+	border-left: 1px solid #ccc;
+	border-right: 1px solid #fff;
+	margin: 1px;
+}
+
+#tablePagination_top {
+	border: 1px solid #ccc;
+	border-top: 0px;
+	background: #fff;
+	overflow: auto;
+	position: relative;
+}
+
+#tablePagination_head {
+	border: 1px solid #ccc;
+	border-top: 1px;
+	background: #fff;
+	overflow: auto;
+	position: relative;
+}

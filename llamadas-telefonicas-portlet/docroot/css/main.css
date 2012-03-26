@@ -16,3 +16,25 @@ div#box_result {
     float: right;
     width: 30%;
     }
+#table_result {
+    width: 330px;
+    text-align: center;
+    font-size: 13px;
+    }
+#table_result th {
+    font-weight: bold;
+    background-color: #D8D8D8;
+    border-bottom: 1px solid #cef;
+    text-align: center;
+    text-transform: uppercase;
+    padding: 5px;
+    }
+#table_result td,th {
+    padding: 5px; 
+    }
+.odd {
+    background-color: #EFEFEF; 
+    }
+.odd td {
+    border-bottom: 1px solid #cef; 
+    }
